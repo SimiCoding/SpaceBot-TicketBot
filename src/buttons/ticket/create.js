@@ -16,20 +16,23 @@ module.exports = {
       ephemeral: true,
     });
     const guild = await client.guilds.fetch(interaction.guildId);
-const ticketEmbed = new EmbedBuilder().setTitle("Ticket").setDescription("A staff member will soon take care of you.").setColor(theme).setTimestamp();
-const buttons = new ActionRowBuilder;
+const ticketEmbed = new EmbedBuilder().setTitle("Ticket").setColor(theme).setTimestamp();
+const buttons = new ActionRowBuilder();
 buttons.components.push(
     new ButtonBuilder()
       .setCustomId(`delete-ticket`)
       .setLabel(`Delete`)
       .setStyle(ButtonStyle.Danger)
   );
-
+buttons.components.push(
+  new ButtonBuilder().setCustomId("claim-ticket").setLabel("Claim").setStyle(ButtonStyle.Success)
+);
 
   let staffRole=undefined;
   guilds.guilds.forEach(guild => {
     if(guild.id===interaction.guildId){
       staffRole=guild.staff;
+      ticketEmbed.setDescription(`A staff member will soon take care of you.`)
     }
   });
   if(staffRole===undefined){
@@ -48,7 +51,8 @@ buttons.components.push(
         },
         {
 id: staffRole,
-allow: [PermissionsBitField.Flags.ViewChannel, PermissionsBitField.Flags.SendMessages]
+allow: [PermissionsBitField.Flags.ViewChannel],
+deny: [PermissionsBitField.Flags.SendMessages]
         },
         {
           id: interaction.guild.roles.everyone.id,
@@ -59,7 +63,7 @@ allow: [PermissionsBitField.Flags.ViewChannel, PermissionsBitField.Flags.SendMes
 
 
 
-        channel.send({embeds: [ticketEmbed], components: [buttons]})
+        channel.send({content: `<@&${staffRole}>`}).then((msg)=>msg.edit({content: "",embeds: [ticketEmbed], components: [buttons] }))
      } );
     await interaction.editReply("Ticket was created");
   },
